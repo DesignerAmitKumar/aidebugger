@@ -1,0 +1,2161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta id="token" content="dd24cd45-b1e6-407e-ba6b-a571f6c7beef">
+  <title>Webdraw AI App Creator</title>
+  <meta name="description" content="Create AI-powered applications with an intuitive interface">
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.3.2/html2canvas.min.js"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!-- Add Intro.js CSS and JS -->
+  <link href="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/introjs.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/intro.min.js"></script>
+  <style>
+    [v-cloak] {
+      display: none;
+    }
+
+    .material-icons {
+      font-size: 18px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      vertical-align: middle;
+    }
+
+    .fade-enter-active,
+    .fade-leave-active {
+      transition: opacity 0.3s ease;
+    }
+
+    .fade-enter-from,
+    .fade-leave-to {
+      opacity: 0;
+    }
+
+    .expand-enter-active,
+    .expand-leave-active {
+      transition: all 0.3s ease-out;
+      overflow: hidden;
+    }
+
+    .expand-enter-from,
+    .expand-leave-to {
+      opacity: 0;
+      max-height: 0px;
+    }
+
+    .expand-enter-to,
+    .expand-leave-from {
+      opacity: 1;
+      max-height: 1000px;
+    }
+
+    .icon-preview {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      text-shadow:
+        0px 15px 15px rgba(0, 0, 0, 0.2),
+        0px 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .spinner {
+      border: 3px solid rgba(0, 0, 0, 0.1);
+      border-top: 3px solid #6366f1;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .gradient-button {
+      position: relative;
+      padding: 2px;
+      border-radius: 9999px;
+      background: linear-gradient(to right,
+          #ff0000,
+          #ffa500,
+          #ffff00,
+          #008000,
+          #0000ff,
+          #4b0082,
+          #ee82ee);
+      transition: all 0.3s ease;
+    }
+
+    .gradient-button>span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 8px 24px;
+      background: white;
+      width: 100%;
+      height: 100%;
+      border-radius: 9999px;
+      transition: all 0.3s ease;
+      color: #000;
+      font-weight: 500;
+    }
+
+    .gradient-button:hover>span {
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .gradient-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .gradient-button:hover {
+      transform: translateY(-1px);
+    }
+
+    /* Tooltip styles */
+    [data-tooltip] {
+      position: relative;
+    }
+
+    [data-tooltip]:before {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%) translateY(-4px);
+      margin-bottom: 8px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: white;
+      color: #1f2937;
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+      transition-delay: 0s;
+      pointer-events: none;
+      box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      border: 1px solid #e5e7eb;
+    }
+
+    [data-tooltip]:after {
+      content: "";
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%) translateY(4px);
+      border-width: 5px;
+      border-style: solid;
+      border-color: white transparent transparent transparent;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+      transition-delay: 0s;
+      pointer-events: none;
+      filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.1));
+    }
+
+    [data-tooltip]:hover:before,
+    [data-tooltip]:hover:after {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+      transition-delay: 0.5s;
+    }
+
+    /* New Create App button styles */
+    .create-app-button {
+      height: 40px;
+      position: relative;
+      cursor: pointer;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0 16px;
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: 9999px;
+      transition: all 150ms;
+      box-shadow: 0px 1px 0px 0px rgba(0, 12, 15, 1.00);
+    }
+
+    .create-app-button:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 9999px;
+      background: conic-gradient(from 45deg,
+          #f3c43a,
+          #0164fc,
+          #52dd84,
+          #ec1120,
+          #f3c43a);
+      z-index: 0;
+    }
+
+    .create-app-button:after {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      border-radius: 9999px;
+      background: white;
+      z-index: 1;
+    }
+
+    .create-app-button span {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      justify-content: center;
+      color: black;
+    }
+
+    .create-app-button:hover {
+      transform: translateY(1px);
+      box-shadow: 0px 2px 0px 0px rgba(0, 12, 15, 1.00);
+    }
+
+    .create-app-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Custom Intro.js Styles */
+    .introjs-tooltip {
+      background: white;
+      color: #1f2937;
+      border-radius: 12px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      border: 1px solid #e5e7eb;
+    }
+
+    .introjs-button {
+      text-shadow: none;
+      background: #2563eb;
+      color: white !important;
+      border: none;
+      border-radius: 9999px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .introjs-button:hover,
+    .introjs-button:focus {
+      background: #1d4ed8;
+      box-shadow: none;
+      outline: none;
+      color: white !important;
+    }
+
+    .introjs-button:focus-visible {
+      outline: 2px solid #2563eb;
+      outline-offset: 2px;
+    }
+
+    .introjs-skipbutton {
+      color: #6b7280;
+      background: #f3f4f6;
+      margin-right: 8px;
+    }
+
+    .introjs-skipbutton:hover {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .introjs-helperLayer {
+      background-color: rgba(255, 255, 255, 0.1);
+      border: none;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
+    }
+
+    .introjs-tooltiptext {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #374151;
+      margin-bottom: 16px;
+    }
+
+    .introjs-arrow {
+      border-color: white;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen"
+  style="background: url('/uploads/Vector.svg') center/cover no-repeat fixed, url('/uploads/background.png') center/cover no-repeat fixed">
+  <div id="app" v-cloak class="container mx-auto sm:py-8 sm:px-4 px-0 min-h-screen flex items-center">
+    <div class="max-w-lg mx-auto w-full">
+      <!-- Main Content -->
+      <div
+        class="bg-white rounded-none sm:rounded-xl shadow-sm sm:mb-6 mb-0 sm:p-6 md:p-6 p-4 sm:min-h-0 flex flex-col justify-between h-[600px] overflow-y-auto">
+        <!-- Step Content -->
+        <div class="space-y-6">
+          <!-- Step 1: Idea -->
+          <div v-show="currentStep === 'idea'" class="px-2">
+            <div class="mb-6">
+              <div class="flex items-center justify-center gap-2 mb-4">
+                <img src="/uploads/icon-app.svg" alt="Create" class="w-6 h-6">
+                <h2 class="text-xl font-semibold text-gray-900">
+                  Create App
+                </h2>
+              </div>
+              <div
+                class="relative border border-[#E4E4E7] rounded-lg focus-within:ring-2 focus-within:ring-[#2563EB] focus-within:border-transparent">
+                <!-- Textarea -->
+                <div class="relative" data-intro="Type your app idea here. Be as specific as possible about what you want your AI app to do." data-step="2">
+                  <textarea v-model="appIdea"
+                    class="w-full h-24 p-3 border-0 focus:ring-0 rounded-t-lg outline-none"
+                    placeholder="Create an AI-powered app that transforms any photo into a unique pixar character."></textarea>
+                </div>
+                <!-- Selected Features Tags -->
+                <div class="flex flex-col gap-2 p-2" data-intro="Selected features will appear here. These are AI capabilities that will be added to your app." data-step="3">
+                  <div class="flex flex-wrap gap-2 items-center">
+                    <div v-for="feature in selectedFeatures" :key="feature.filepath"
+                      class="bg-[#2563EB]/10 text-[#2563EB] h-10 px-3 flex items-center rounded-full text-sm font-medium gap-2 shadow-sm">
+                      {{ getFeatureName(feature.filepath) }}
+                      <button @click="removeFeature(feature.filepath)" class="hover:text-purple-900 cursor-pointer">
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                  <div class="flex gap-2 justify-between" data-step="continue-button">
+                    <div class="flex gap-2">
+                      <button v-if="appIdea.trim() || selectedFeatures.length > 0" @click="copyPrompt"
+                        class="h-10 w-10 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors flex items-center justify-center cursor-pointer"
+                        :class="{ 'bg-green-100 text-green-700 hover:bg-green-200': isCopied }"
+                        data-tooltip="Copy prompt">
+                        <template v-if="isCopying">
+                          <div class="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin">
+                          </div>
+                        </template>
+                        <template v-else-if="isCopied">
+                          <span class="material-icons w-4 h-4">check_circle</span>
+                        </template>
+                        <template v-else>
+                          <span class="material-icons w-4 h-4">content_copy</span>
+                        </template>
+                      </button>
+                      <button v-if="appIdea.trim()" @click="appIdea = ''; selectedFeatures = []"
+                        class="h-10 w-10 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors flex items-center justify-center cursor-pointer"
+                        data-tooltip="Start over">
+                        <span class="material-icons w-4 h-4">refresh</span>
+                      </button>
+                    </div>
+                    <button
+                      @click="appIdea.trim() ? generateDetails() : generateRandomIdea()"
+                      
+                      :class="[
+                        appIdea.trim() 
+                          ? 'h-10 px-6 py-2 bg-[#2563EB] text-[#FAFAFA] rounded-full hover:bg-blue-700 transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
+                          : 'h-10 px-6 py-2 bg-[#2563EB] text-[#FAFAFA] rounded-full hover:bg-blue-700 transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
+                      ]"
+                      :data-tooltip="appIdea.trim() ? 'Continue to app details' : 'Generate random app idea'"
+                      :disabled="isGeneratingIdea || isGeneratingSuggestions || isGeneratingDetails">
+                      <template v-if="!appIdea.trim()">
+                        <template v-if="isGeneratingIdea">
+                          <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin">
+                          </div>
+                          <span class="hidden sm:inline">Generating...</span>
+                        </template>
+                        <template v-else>
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <g clip-path="url(#clip0_285_7810)">
+                              <path
+                                d="M11.9466 9.33338L14.28 7.00004C14.5273 6.72571 14.6642 6.36943 14.6642 6.00004C14.6642 5.63066 14.5273 5.27438 14.28 5.00004L10.9466 1.72004C10.6723 1.47269 10.316 1.33578 9.94665 1.33578C9.57726 1.33578 9.22098 1.47269 8.94665 1.72004L6.66665 4.00004M3.99998 12H4.00665M6.66665 9.33334H6.67331M9.99998 4.00001H10.0066M12 6.00001H12.0066M2.66665 6.66668H7.99998C8.73636 6.66668 9.33331 7.26363 9.33331 8.00001V13.3333C9.33331 14.0697 8.73636 14.6667 7.99998 14.6667H2.66665C1.93027 14.6667 1.33331 14.0697 1.33331 13.3333V8.00001C1.33331 7.26363 1.93027 6.66668 2.66665 6.66668Z"
+                                stroke="#FAFAFA" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round" />
+                            </g>
+                            <defs>
+                              <clipPath id="clip0_285_7810">
+                                <rect width="16" height="16" fill="white" />
+                              </clipPath>
+                            </defs>
+                          </svg>
+                          <span class="hidden sm:inline">Shuffle Ideas</span>
+                        </template>
+                      </template>
+                      <template v-else>
+                        <template v-if="isGeneratingDetails">
+                          <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin">
+                          </div>
+                          <span class="inline">Generating details...</span>
+                        </template>
+                        <template v-else-if="isGeneratingSuggestions">
+                          <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin">
+                          </div>
+                          <span class="inline">Generating suggestions...</span>
+                        </template>
+                        <template v-else>
+                          <span class="inline">Continue</span>
+                        </template>
+                      </template>
+                    </button>
+                  </div>
+                  <button v-if="appIdea.trim().length >= 15" @click="suggestFeatures"
+                    class="h-10 px-4 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors flex items-center gap-2 cursor-pointer ml-auto max-w-[200px] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-100"
+                    :disabled="isGeneratingSuggestions">
+                    <template v-if="isGeneratingSuggestions">
+                      <div class="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                      <span>Suggesting...</span>
+                    </template>
+                    <template v-else>
+                      <span class="material-icons w-4 h-4 hidden sm:block">auto_awesome</span>
+                      <span>Suggest Features</span>
+                    </template>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Feature Selector -->
+            <div class="mb-6" data-intro="Browse and select AI features by category. Each feature adds specific capabilities to your app." data-step="4">
+              <div class="flex items-center mb-1">
+                <div class="flex items-center gap-2">
+                  <h2 class="text-xl font-semibold text-gray-900">
+                    Select Features
+                  </h2>
+                </div>
+              </div>
+              <p class="text-sm text-gray-500 mb-4">
+                Choose the AI capabilities for your app. By default, only text
+                generation is included.
+              </p>
+
+              <div class="space-y-2">
+                <!-- Dynamic Categories -->
+                <div v-for="category in categories" :key="category" class="overflow-hidden">
+                  <button @click="toggleCategory(category)"
+                    class="border-b border-[#E4E4E7] w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                    :data-tooltip="'View ' + category + ' features'">
+                    <div class="flex items-center gap-3">
+                      <img :src="getCategoryIcon(category) || 'https://library.webdraw.app/feature_icons/default.svg'"
+                        class="w-5 h-5" :alt="category">
+                      <span class="font-medium text-gray-900">{{ category }}</span>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path v-if="openCategory === category" stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2" d="M20 12H4" />
+                      <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+                  <Transition name="expand">
+                    <div v-if="openCategory === category" class="px-4 pt-4">
+                      <div class="space-y-2 pr-2">
+                        <button v-for="feature in getFeaturesByCategory(category)" :key="feature.id"
+                          @click="addFeature(feature)"
+                          class="w-full text-left p-4 rounded-lg transition-all duration-200 cursor-pointer flex items-start gap-3 relative group bg-[#F4F4F5]"
+                          :class="[
+                            isFeatureSelected(feature.filepath)
+                              ? 'bg-[#2563EB]/5' 
+                              : 'bg-[#F4F4F5]'
+                          ]">
+                          <div class="flex-shrink-0 w-5 h-5 mt-0.5">
+                            <div class="w-5 h-5 border-2 rounded-md flex items-center justify-center transition-colors"
+                              :class="isFeatureSelected(feature.filepath) ? 'border-[#2563EB] bg-[#2563EB]' : 'border-gray-300 group-hover:border-[#2563EB]/50'">
+                              <svg v-if="isFeatureSelected(feature.filepath)" class="w-3.5 h-3.5 text-white" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                  d="M5 13l4 4L19 7" />
+                              </svg>
+                              <svg v-else class="w-3.5 h-3.5 text-gray-400 opacity-0 group-hover:opacity-100"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          </div>
+                          <div class="flex-1">
+                            <div class="font-medium text-gray-900">
+                              {{ getFeatureName(feature.filepath) }}
+                            </div>
+                            <div class="text-sm text-gray-500 mt-1">
+                              {{ feature.content }}
+                            </div>
+                            <div class="flex flex-wrap gap-1 mt-2">
+                              <span v-for="modelObj in feature.models" :key="modelObj.model"
+                                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600"
+                                :title="modelObj.instructions">
+                                {{ modelObj.model.split(':')[0] }}
+                                <span v-if="modelObj.instructions" class="ml-1 text-gray-400">*</span>
+                              </span>
+                            </div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  </Transition>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Details -->
+          <div v-show="currentStep === 'details'" class="px-2">
+            <div class="space-y-6">
+              <div class="flex items-center justify-center gap-2 mb-4">
+                <img src="/uploads/icon-app.svg" alt="Create" class="w-6 h-6">
+                <h2 class="text-xl font-semibold text-gray-900">
+                  Create App
+                </h2>
+              </div>
+              <!-- App Icon Preview -->
+              <div class="flex items-start gap-4" data-step="5">
+                <div class="relative w-24 h-24 rounded-xl bg-gray-50 flex items-center justify-center overflow-hidden">
+                  <template v-if="typeof generatedIcon === 'string'">
+                    <img :src="generatedIcon" alt="App icon" class="w-full h-full object-cover">
+                  </template>
+                  <template v-else-if="generatedIcon">
+                    <div class="icon-preview" :style="{
+                      background: `linear-gradient(135deg, ${generatedIcon.color1}, ${generatedIcon.color2}, ${generatedIcon.color3})`
+                    }">
+                      {{ generatedIcon.emoji }}
+                    </div>
+                  </template>
+                  <div v-if="isGeneratingIcon" class="absolute inset-0 bg-white/80 flex items-center justify-center">
+                    <div class="spinner"></div>
+                  </div>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <div class="flex gap-2">
+                    <input type="file" accept="image/*" class="hidden" id="icon-upload" @change="handleFileUpload">
+                    <button @click="triggerFileUpload"
+                      class="h-10 px-6 py-2 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 flex items-center gap-2 cursor-pointer transition-colors"
+                      data-tooltip="Upload custom icon">
+                      <span class="material-icons w-4 h-4">cloud_upload</span>
+                      Upload
+                    </button>
+                    <button @click="generateIcon" :disabled="isGeneratingIcon"
+                      class="h-10 px-6 py-2 bg-[#2563EB] text-[#FAFAFA] rounded-full hover:bg-blue-700 transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                      data-tooltip="Generate new icon">
+                      <template v-if="isGeneratingIcon">
+                        <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin">
+                        </div>
+                        <span class="hidden sm:inline">Generating...</span>
+                      </template>
+                      <template v-else>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <g clip-path="url(#clip0_285_7810)">
+                            <path
+                              d="M11.9466 9.33338L14.28 7.00004C14.5273 6.72571 14.6642 6.36943 14.6642 6.00004C14.6642 5.63066 14.5273 5.27438 14.28 5.00004L10.9466 1.72004C10.6723 1.47269 10.316 1.33578 9.94665 1.33578C9.57726 1.33578 9.22098 1.47269 8.94665 1.72004L6.66665 4.00004M3.99998 12H4.00665M6.66665 9.33334H6.67331M9.99998 4.00001H10.0066M12 6.00001H12.0066M2.66665 6.66668H7.99998C8.73636 6.66668 9.33331 7.26363 9.33331 8.00001V13.3333C9.33331 14.0697 8.73636 14.6667 7.99998 14.6667H2.66665C1.93027 14.6667 1.33331 14.0697 1.33331 13.3333V8.00001C1.33331 7.26363 1.93027 6.66668 2.66665 6.66668Z"
+                              stroke="#FAFAFA" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round" />
+                          </g>
+                          <defs>
+                            <clipPath id="clip0_285_7810">
+                              <rect width="16" height="16" fill="white" />
+                            </clipPath>
+                          </defs>
+                        </svg>
+                        <span class="hidden sm:inline">Shuffle</span>
+                      </template>
+                    </button>
+                  </div>
+                  <p class="text-sm text-gray-500">
+                    Upload a custom image or Generate an icon
+                  </p>
+                </div>
+              </div>
+
+              <!-- App Details Form -->
+              <div class="space-y-4">
+                <div data-intro="Give your app a clear and descriptive title." data-step="6">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                  <input type="text" v-model="appTitle"
+                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#2563EB] focus:border-transparent outline-none"
+                    placeholder="Enter app title">
+                </div>
+                <div data-intro="Write a compelling description that explains what your app does." data-step="7">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea v-model="appDescription"
+                    class="w-full h-24 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#2563EB] focus:border-transparent outline-none"
+                    placeholder="Enter app description"></textarea>
+                </div>
+              </div>
+              <!-- Final Prompt Details -->
+              <details class="rounded-lg border border-gray-200">
+                <summary
+                  class="px-4 py-2 cursor-pointer hover:bg-gray-50 rounded-lg flex items-center gap-2 text-sm text-gray-700">
+                  <span class="material-icons text-gray-500">description</span>
+                  View Final Prompt
+                </summary>
+                <div class="p-4 bg-gray-50 rounded-b-lg">
+                  <textarea :value="getFinalPrompt()"
+                    class="w-full h-48 p-3 text-sm font-mono bg-white border rounded-lg focus:ring-2 focus:ring-[#2563EB] focus:border-transparent outline-none"
+                    readonly></textarea>
+                </div>
+              </details>
+            </div>
+
+          </div>
+        </div>
+
+
+        <!-- Navigation Buttons -->
+        <div class="flex justify-between">
+          <button v-if="currentStep === 'details'" @click="currentStep = 'idea'"
+            class="mt-8 h-10 px-6 py-2 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 flex items-center gap-2 cursor-pointer transition-colors"
+            data-tooltip="Go back to app idea">
+            <span class="material-icons">arrow_back</span>
+            Back
+          </button>
+          <button v-if="currentStep === 'details'" @click="createApp" :disabled="!canCreate"
+            class="mt-8 ml-auto create-app-button disabled:opacity-50 disabled:cursor-not-allowed"
+            data-step="8">
+            <span>Create App</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div v-if="isLoading" class="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50">
+      <div
+        class="w-full sm:max-w-sm bg-white mx-0 sm:mx-4 min-h-screen sm:min-h-0 flex flex-col justify-center sm:rounded-lg rounded-none p-6">
+        <div class="flex flex-col items-center">
+          <div class="w-16 h-16 border-4 border-[#2563EB] border-t-transparent rounded-full animate-spin">
+          </div>
+          <p class="mt-4 text-lg font-medium">{{ loadingMessage }}</p>
+          <p class="text-gray-500 text-sm text-center mt-2">
+            {{ loadingDescription }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add error toast notification -->
+    <div v-if="showError"
+      class="!fixed bottom-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg z-50 flex items-center">
+      <span class="material-icons mr-2">error</span>
+      {{ errorMessage }}
+    </div>
+
+    <!-- Close Tutorial Button -->
+    <button v-if="!hasSeenTutorial" @click="closeTutorial" 
+      class="cursor-pointer fixed top-4 right-4 z-[1000001] bg-white/80 hover:bg-white text-gray-600 hover:text-gray-900 rounded-full p-2 backdrop-blur-sm transition-all duration-200 shadow-sm hover:shadow flex items-center gap-2 text-sm">
+      <span class="material-icons text-base">close</span>
+      <span class="hidden sm:inline">Skip Tutorial</span>
+    </button>
+
+    <!-- Help Button -->
+    <button @click="startTutorial" 
+      class="cursor-pointer !fixed !bottom-4 !right-4 z-50 bg-white/80 hover:bg-white text-gray-600 hover:text-gray-900 rounded-full p-3 backdrop-blur-sm transition-all duration-200 shadow-sm hover:shadow-md h-10 vertical-baseline"
+      data-tooltip="Restart Tutorial">
+      <span class="material-icons vertical-baseline">help_outline</span>
+    </button>
+  </div>
+
+  <script type="module">
+    import { SDK } from "https://webdraw.com/webdraw-sdk@v1";
+
+    const { createApp } = Vue;
+
+    function sanitizeFilename(input) {
+      return input
+        .normalize("NFD") // Decompose Unicode (e.g., ã -> a + ~)
+        .replace(/[\u0300-\u036f]/g, "") // Remove diacritical marks
+        .replace(/[^\x20-\x7E]/g, "") // Remove non-ASCII characters
+        .replace(/[^a-zA-Z0-9._-\s]/g, "") // Replace unsafe characters with spaces
+        .replace(/\s{2,}/g, " ") // Collapse multiple spaces
+        .trim() // Remove initial/final spaces
+    }
+
+    createApp({
+      data() {
+        return {
+          steps: [
+            { id: "idea", label: "App Idea" },
+            { id: "details", label: "Details" },
+          ],
+          currentStep: "idea",
+          appIdea: "",
+          appTitle: "",
+          appDescription: "",
+          selectedFeatures: [],
+          features: [],
+          generatedIcon: null,
+          isLoading: false,
+          isGeneratingIcon: false,
+          isGeneratingSuggestions: false,
+          isGeneratingDetails: false,
+          loadingMessage: "",
+          loadingDescription: "",
+          errorMessage: "",
+          showError: false,
+          libraryPrompts: {},
+          fileCreated: false,
+          fileError: null,
+          DEFAULT_EXCLUDE_GLOBS: [
+            "/**/.webdraw/drawings",
+            "/**/.webdraw/*.json",
+            "/**/chats",
+          ],
+          isValidIconData(value) {
+            return value && typeof value === "object" &&
+              typeof value.emoji === "string" &&
+              typeof value.color1 === "string" &&
+              typeof value.color2 === "string" &&
+              typeof value.color3 === "string";
+          },
+          openCategory: null,
+          featureCounts: {},
+          isGeneratingIdea: false,
+          isCopying: false,
+          isCopied: false,
+          hasSeenTutorial: false,
+          currentIntro: null,
+        };
+      },
+      computed: {
+        canProceed() {
+          return this.appIdea.trim();
+        },
+        canCreate() {
+          return this.appTitle.trim() &&
+            this.appDescription.trim() &&
+            !this.isGeneratingIcon &&
+            (this.generatedIcon !== null);
+        },
+        groupedFeatures() {
+          const groups = {};
+          this.features.forEach((feature) => {
+            const mainTag = feature.tags[0] || "Other";
+            if (!groups[mainTag]) {
+              groups[mainTag] = [];
+            }
+            groups[mainTag].push(feature);
+          });
+          return groups;
+        },
+        categories() {
+          // Get unique categories from feature tags
+          const uniqueCategories = new Set();
+          this.features.forEach((feature) => {
+            feature.tags.forEach((tag) => uniqueCategories.add(tag));
+          });
+          return Array.from(uniqueCategories).sort();
+        },
+        featureCounts() {
+          const counts = {};
+          this.selectedFeatures.forEach((feature) => {
+            counts[feature.filepath] =
+              (counts[feature.filepath] || 0) + 1;
+          });
+          return counts;
+        },
+      },
+      async mounted() {
+        try {
+          const featuresResponse = await SDK.fetch(
+            "https://library.webdraw.app/.webdraw/features_v2.json",
+          );
+          const featuresData = this.safeJSONParse(featuresResponse);
+          this.features = featuresData.features;
+          this.categoryIcons = featuresData.icons;
+
+          const libraryResponse = await SDK.fetch(
+            "https://library.webdraw.app/.webdraw/library.json",
+          );
+          const libraryData = this.safeJSONParse(libraryResponse);
+          this.libraryPrompts = libraryData;
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
+
+        // Check if user has seen the tutorial from fs
+        try {
+          const settingsExists = await SDK.fs.exists('/~/create_app.json');
+          if (settingsExists) {
+            const settings = JSON.parse(await SDK.fs.read('/~/create_app.json'));
+            this.hasSeenTutorial = settings.hasSeenTutorial || false;
+          } else {
+            this.hasSeenTutorial = false;
+          }
+        } catch (error) {
+          console.error('Error reading tutorial settings:', error);
+          this.hasSeenTutorial = false;
+        }
+        
+        if (!this.hasSeenTutorial) {
+          this.startTutorial();
+        }
+
+        // Watch for currentStep changes to handle icon step properly
+        this.$watch('currentStep', (newStep) => {
+          if (newStep === 'details' && window.introJs) {
+            setTimeout(() => {
+              const iconStep = document.querySelector('[data-step="5"]');
+              if (iconStep) {
+                const intro = introJs();
+                intro.refresh();
+              }
+            }, 300);
+          }
+        });
+      },
+      methods: {
+        getFeatureName(filepath) {
+          return filepath.replace("/shared/webdraw.com/Prompts/", "");
+        },
+        addFeature(feature) {
+          SDK.posthogEvent('app:create_app', { action: 'add_feature', filepath: feature.filepath });
+          const hasFeature = this.selectedFeatures.some((f) =>
+            f.filepath === feature.filepath
+          );
+          if (hasFeature) {
+            this.removeFeature(feature.filepath);
+          } else {
+            this.selectedFeatures.push(feature);
+          }
+        },
+        removeFeature(filepath) {
+          this.selectedFeatures = this.selectedFeatures.filter((f) =>
+            f.filepath !== filepath
+          );
+        },
+        isFeatureSelected(filepath) {
+          return this.selectedFeatures.some((f) =>
+            f.filepath === filepath
+          );
+        },
+        getFeatureCount(filepath) {
+          return this.selectedFeatures.filter((f) =>
+            f.filepath === filepath
+          ).length;
+        },
+        debounce(fn, delay) {
+          let timeoutId;
+          return function (...args) {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => fn.apply(this, args), delay);
+          };
+        },
+        async suggestFeatures() {
+          if (!this.appIdea.trim()) {
+            return;
+          }
+
+          this.isGeneratingSuggestions = true;
+
+          try {
+            const response = await SDK.ai.generateObject({
+              model: "anthropic:claude-3-5-haiku-20241022",
+              schema: {
+                type: "object",
+                properties: {
+                  features: {
+                    type: "array",
+                    description:
+                      "List of suggested features based on the app idea",
+                    items: {
+                      type: "object",
+                      properties: {
+                        filepath: {
+                          type: "string",
+                          description:
+                            "The filepath of the suggested feature",
+                        },
+                        reason: {
+                          type: "string",
+                          description:
+                            "Brief explanation of why this feature is relevant",
+                        },
+                      },
+                      required: ["filepath", "reason"],
+                    },
+                  },
+                },
+                required: ["features"],
+              },
+              messages: [{
+                role: "user",
+                content:
+                  `Based on this app idea: "${this.appIdea}", suggest the most appropriate features from this list.
+                  
+                  Available Features:
+                  ${this.features.map((f) =>
+                    `- ${f.filepath}
+                    Tags: ${f.tags.join(", ")}
+                    Content: ${f.content}
+                    Metadata: ${f.metadata || "N/A"}
+                    Models: ${f.models.map((m) =>
+                      `${m.model}${m.instructions
+                        ? ` (${m.instructions})`
+                        : ""
+                      }`
+                    ).join(", ")
+                    }`
+                  ).join("\n")
+                  }
+                  
+                  Consider the app requirements and needed capabilities. Return a structured list of suggested features with explanations.`,
+              }],
+            });
+
+            let featureTags = []
+            // Add suggested features directly to selectedFeatures if not already selected
+            response.object.features.forEach((suggestion) => {
+              const feature = this.features.find((f) =>
+                f.filepath === suggestion.filepath
+              );
+              if (
+                feature && !this.selectedFeatures.some((f) =>
+                  f.filepath === feature.filepath
+                )
+              ) {
+                this.selectedFeatures.push(feature);
+                featureTags.push(feature.tags[0])
+                console.log(
+                  `Added feature: ${feature.filepath} - ${suggestion.reason}`,
+                );
+              }
+            });
+            SDK.posthogEvent('app:create_app', { action: 'suggest_features', app_idea: this.appIdea, features: this.selectedFeatures });
+          } catch (error) {
+            console.error("Error suggesting features:", error);
+            this.showErrorMessage("Failed to suggest features. Please try again.");
+          } finally {
+            this.isGeneratingSuggestions = false;
+          }
+        },
+        async generateDetails() {
+          SDK.posthogEvent('app:create_app', { action: 'generate_details', app_idea: this.appIdea, features: this.selectedFeatures });
+          this.isGeneratingDetails = true;
+
+          try {
+            const response = await SDK.ai.generateObject({
+              model: "anthropic:claude-3-5-sonnet-latest",
+              schema: {
+                type: "object",
+                properties: {
+                  title: {
+                    type: "string",
+                    description:
+                      "A concise and descriptive title (max 50 chars)",
+                  },
+                  description: {
+                    type: "string",
+                    description:
+                      "A compelling description (max 150 chars)",
+                  },
+                },
+              },
+              messages: [{
+                role: "user",
+                content:
+                  `Based on this app idea: "${this.appIdea}" and using these features and models:
+                  ${this.selectedFeatures.map((feature) =>
+                    `- ${this.getFeatureName(feature.filepath)}
+                    Content: ${feature.content}
+                    Models: ${feature.models.map((m) =>
+                      `${m.model}${m.instructions
+                        ? ` (${m.instructions})`
+                        : ""
+                      }`
+                    ).join(", ")
+                    }`
+                  ).join("\n")
+                  }
+                  
+                  Generate a title and description.`,
+              }],
+            });
+
+            this.appTitle = response.object.title;
+            this.appDescription = response.object.description;
+
+            await this.generateIcon();
+            this.currentStep = "details";
+          } catch (error) {
+            console.error("Error generating details:", error);
+            this.showErrorMessage("Failed to generate app details. Please try again.");
+            // Reset partial data on error
+            this.appTitle = "";
+            this.appDescription = "";
+          } finally {
+            this.isGeneratingDetails = false;
+          }
+        },
+        async generateIcon() {
+          SDK.posthogEvent('app:create_app', { action: 'generate_icon' });
+          this.isGeneratingIcon = true;
+          this.loadingMessage = "Generating App Icon";
+          this.loadingDescription =
+            "Creating a unique icon for your app...";
+
+          try {
+            const previousIcon = this.generatedIcon &&
+              typeof this.generatedIcon === "object"
+              ? `Current icon has emoji "${this.generatedIcon.emoji}" with colors: ${this.generatedIcon.color1}, ${this.generatedIcon.color2}, ${this.generatedIcon.color3}. Generate a different variation.`
+              : "";
+
+            const response = await SDK.ai.generateObject({
+              model: "anthropic:claude-3-5-haiku-20241022",
+              schema: {
+                type: "object",
+                properties: {
+                  emoji: {
+                    type: "string",
+                    description:
+                      "A single emoji that represents the app (different from the previous one if exists)",
+                  },
+                  color1: {
+                    type: "string",
+                    pattern: "^#[0-9A-Fa-f]{6}$",
+                    description:
+                      "First color in hexadecimal format (e.g. #FF5733), should be a vibrant color that represents the app",
+                  },
+                  color2: {
+                    type: "string",
+                    pattern: "^#[0-9A-Fa-f]{6}$",
+                    description:
+                      "Second color in hexadecimal format (e.g. #33FF57), should create a nice gradient with color1",
+                  },
+                  color3: {
+                    type: "string",
+                    pattern: "^#[0-9A-Fa-f]{6}$",
+                    description:
+                      "Third color in hexadecimal format (e.g. #3357FF), should complete the gradient harmoniously",
+                  },
+                },
+                required: ["emoji", "color1", "color2", "color3"],
+              },
+              messages: [{
+                role: "user",
+                content:
+                  `Create an icon for an app called "${this.appTitle}" with context: ${this.appIdea}.
+                ${previousIcon}
+                Generate an object with an emoji and three hexadecimal colors for a gradient background. 
+                Make sure the colors create a pleasing gradient and the emoji represents the app well.
+                Colors should be in hexadecimal format (e.g. #FF5733) and create a harmonious combination.`,
+              }],
+            });
+
+            this.generatedIcon = response.object;
+          } catch (error) {
+            console.error("Error generating icon:", error);
+            this.showErrorMessage("Failed to generate icon. Please try again.");
+            // Reset icon on error
+            this.generatedIcon = null;
+          } finally {
+            this.isGeneratingIcon = false;
+            this.loadingMessage = "";
+            this.loadingDescription = "";
+          }
+        },
+        async createApp() {
+          SDK.posthogEvent('app:create_app', { action: 'create_app', app_idea: this.appIdea, features: this.selectedFeatures });
+          this.isLoading = true;
+          this.loadingMessage = "Creating Your App";
+          this.loadingDescription =
+            "Generating the application code...";
+
+          try {
+            // Get the base prompt that should always be included
+            const basePrompt = this.getPromptDetails(
+              "857a8346-184f-4db9-9d80-099be96218a1",
+            );
+            const basePromptText = basePrompt
+              ? this.getAnnotationTextFromPrompt(basePrompt)
+              : "";
+
+            // Gather all prompts from selected features
+            const selectedFeaturesContext = this.selectedFeatures.map(
+              (feature) => {
+                const libraryPrompt = this
+                  .findLibraryPromptForFeature(feature.id);
+                if (libraryPrompt) {
+                  const annotationText = this
+                    .getAnnotationTextFromPrompt(libraryPrompt);
+                  return annotationText
+                    ? `Feature ${feature.filepath} Implementation Details:\n${annotationText}\nAvailable Models: ${feature.models.map((m) => m.model.split(":")[0])
+                      .join(", ")
+                    }`
+                    : `Feature ${feature.filepath}\nTags: ${feature.tags.join(", ")
+                    }\nContent: ${feature.content}\nAvailable Models: ${feature.models.map((m) => m.model.split(":")[0])
+                      .join(", ")
+                    }`;
+                }
+                return `Feature ${feature.filepath}\nTags: ${feature.tags.join(", ")
+                  }\nContent: ${feature.content}\nAvailable Models: ${feature.models.map((m) => m.model.split(":")[0])
+                    .join(", ")
+                  }`;
+              },
+            ).join("\n\n");
+
+            const response = await SDK.ai.generateObject({
+              model: "anthropic:claude-3-5-sonnet-latest",
+              schema: {
+                type: "object",
+                properties: {
+                  html: {
+                    type: "string",
+                    description: "A complete HTML file content",
+                  },
+                },
+              },
+              messages: [{
+                role: "system",
+                content:
+                  "You are a helpful AI assistant that generates complete HTML files. Your response should be ONLY the HTML code, nothing else.",
+              }, {
+                role: "user",
+                content:
+                  `Create a complete HTML file for a web application with the following requirements:
+                
+                Title: ${this.appTitle}
+                Description: ${this.appDescription}
+                
+                App Idea Context: ${this.appIdea}
+
+                Base Implementation Details:
+                ${basePromptText}
+
+                Selected Features and Implementation Details:
+                ${this.selectedFeatures.map((feature) =>
+                    `Feature: ${this.getFeatureName(feature.filepath)
+                    }
+                  Models to Use: ${feature.models.map((m) =>
+                      `${m.model.split(":")[0]}${m.instructions
+                        ? ` (${m.instructions})`
+                        : ""
+                      }`
+                    ).join(", ")
+                    }
+                  Tags: ${feature.tags.join(", ")}
+                  Content: ${feature.content}
+                  Implementation Details: ${this.findLibraryPromptForFeature(feature.id)
+                      ? this.getAnnotationTextFromPrompt(
+                        this.findLibraryPromptForFeature(
+                          feature.id,
+                        ),
+                      )
+                      : "Use standard implementation"
+                    }`
+                  ).join("\n\n")
+                  }
+                
+                Return ONLY the complete HTML code, no explanations or additional text.`,
+              }],
+            });
+
+            const generatedHtml = response.object.html;
+
+            if (!generatedHtml) {
+              throw new Error("Failed to generate HTML content");
+            }
+
+            // Create app directory and save files
+            const { appPath, finalName } = await this
+              .createAppDirectory(this.appTitle, generatedHtml, this.appIdea);
+            // Create a link element for proper top-level navigation
+            const link = document.createElement("a");
+            link.href = "https://webdraw.com/~/Apps/" + finalName +
+              "?openWith=https://chat.webdraw.app/";
+            link.target = "_top";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Reset form
+            this.appIdea = "";
+            this.appTitle = "";
+            this.appDescription = "";
+            this.selectedFeatures = [];
+            this.generatedIcon = null;
+            this.currentStep = "idea";
+          } catch (error) {
+            console.error("Error creating app:", error);
+            this.showErrorMessage("Failed to create app. Please try again.");
+          } finally {
+            this.isLoading = false;
+            this.loadingMessage = "";
+            this.loadingDescription = "";
+          }
+        },
+        async createAppContentSummary(htmlContent) {
+          const response = await SDK.ai.generateObject({
+            model: "anthropic:claude-3-5-sonnet-latest",
+            schema: {
+              type: "object",
+              properties: {
+                description: {
+                  type: "string",
+                  description:
+                    "A brief description of the app content",
+                },
+              },
+            },
+            messages: [{
+              role: "system",
+              content:
+                "You are a helpful AI assistant that generates a brief description of the app content.",
+            }, {
+              role: "user",
+              content: `Create a brief description of the app content:
+                
+                   HTML Content: ${htmlContent}
+                
+                Return ONLY the description, no explanations or additional text.`,
+            }],
+          });
+
+          const generatedDescription = response.object.description;
+          return generatedDescription;
+        },
+        async createAppDirectory(appName, htmlContent, initialDescription) {
+          try {
+            // Create safe app name for filesystem
+            const safeName = sanitizeFilename(appName);
+
+            // Define base paths
+            const appsPath = `/~/Apps`;
+
+            // Check if directory exists and increment name if needed
+            let finalName = safeName;
+            let index = 0;
+            let appPath = `${appsPath}/${finalName}`;
+
+            while (await SDK.fs.exists(appPath)) {
+              index++;
+              finalName = `${safeName} ${index}`;
+              appPath = `${appsPath}/${finalName}`;
+            }
+
+            const webdrawPath = `${appPath}/.webdraw`;
+            const assetsPath = `${webdrawPath}/assets`;
+
+            // Create directories
+            await SDK.fs.mkdir(appPath, { recursive: true });
+            await SDK.fs.mkdir(webdrawPath, { recursive: true });
+            await SDK.fs.mkdir(assetsPath, { recursive: true });
+
+            // Create manifest.json
+            const manifest = {
+              id: crypto.randomUUID(),
+              name: appName,
+              description: this.appDescription,
+              exclude: this.DEFAULT_EXCLUDE_GLOBS,
+            };
+
+            // Save manifest.json
+            await SDK.fs.write(
+              `${webdrawPath}/manifest.json`,
+              JSON.stringify(manifest, null, 2),
+            );
+
+            // Save the HTML file
+            await SDK.fs.write(
+              `${appPath}/index.html`,
+              htmlContent,
+            );
+
+            const description = await this.createAppContentSummary(
+              htmlContent,
+            );
+
+            const initialChatMessage = {
+              role: "user",
+              message: {
+                type: "message",
+                content: initialDescription,
+                role: "user",
+                timestamp: new Date(),
+                mentions: [],
+              },
+            };
+
+            const assistantChatMessage = {
+              role: "assistant",
+              message: {
+                type: "message",
+                content: description ??
+                  "Successfully generated content!",
+                role: "assistant",
+                timestamp: new Date(),
+                mentions: [],
+              },
+            };
+
+            await SDK.fs.mkdir(`${webdrawPath}/chats`, {
+              recursive: true,
+            });
+
+            await SDK.fs.write(
+              `${webdrawPath}/chats/index.html.json`,
+              JSON.stringify({
+                prompts: [],
+                entries: [initialChatMessage, assistantChatMessage],
+              }),
+              { encoding: "utf-8" },
+            );
+
+            // Save the icon if exists
+            if (this.generatedIcon) {
+              let iconData;
+
+              if (typeof this.generatedIcon === "string") {
+                iconData = this.generatedIcon;
+              } else {
+                const canvas = document.createElement("canvas");
+                canvas.width = 512;
+                canvas.height = 512;
+                const ctx = canvas.getContext("2d");
+
+                // Draw gradient background
+                const gradient = ctx.createLinearGradient(
+                  0,
+                  0,
+                  512,
+                  512,
+                );
+                gradient.addColorStop(0, this.generatedIcon.color1);
+                gradient.addColorStop(0.5, this.generatedIcon.color2);
+                gradient.addColorStop(1, this.generatedIcon.color3);
+
+                // Fill background
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.roundRect(0, 0, 512, 512, 64); // 64px border radius
+                ctx.fill();
+
+                // Draw emoji
+                ctx.fillStyle = "black";
+                ctx.font = "256px sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+
+                // Add shadow
+                ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
+                ctx.shadowBlur = 15;
+                ctx.shadowOffsetY = 15;
+
+                // Draw main text
+                ctx.fillText(this.generatedIcon.emoji, 256, 256);
+
+                // Remove shadow for the second layer
+                ctx.shadowColor = "rgba(0, 0, 0, 0.05)";
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetY = 4;
+                ctx.fillText(this.generatedIcon.emoji, 256, 256);
+
+                iconData = canvas.toDataURL("image/png");
+              }
+
+              // Get base64 data without the prefix
+              const base64Data = iconData.split(",")[1];
+
+              try {
+                await SDK.fs.write(
+                  `${assetsPath}/icon.png`,
+                  base64Data,
+                  { encoding: "base64" },
+                );
+
+                // Update manifest with icon
+                manifest.icon = '/.webdraw/assets/icon.png';
+                await SDK.fs.write(
+                  `${webdrawPath}/manifest.json`,
+                  JSON.stringify(manifest, null, 2),
+                );
+              } catch (error) {
+                console.error("Error saving icon:", error);
+                throw error;
+              }
+            }
+
+            return { appPath, finalName };
+          } catch (error) {
+            console.error("Error creating app directory:", error);
+            throw error;
+          }
+        },
+        safeJSONParse(response) {
+          if (response.status < 400 && response.status >= 200) {
+            return JSON.parse(response.body);
+          }
+          const error = typeof response.body === "string"
+            ? { message: response.body }
+            : response.body;
+          throw error;
+        },
+        getPromptDetails(promptId) {
+          return this.libraryPrompts[promptId] || null;
+        },
+        findLibraryPromptForFeature(featureId) {
+          // Find the library prompt that matches the feature ID
+          return Object.values(this.libraryPrompts).find((prompt) =>
+            prompt.id === featureId
+          );
+        },
+        getAnnotationTextFromPrompt(prompt) {
+          if (!prompt?.detail) return null;
+
+          // Find all text elements marked as annotations
+          const annotationElements = prompt.detail.filter((element) =>
+            element.type === "text" &&
+            element.text &&
+            element.customData?.isAnnotation
+          );
+
+          // Combine all annotation texts
+          return annotationElements.map((el) => el.text).join("\n");
+        },
+        async suggestFeaturesFromPrompt(promptId) {
+          const prompt = this.getPromptDetails(promptId);
+          if (!prompt) return;
+
+          const textElements = prompt.detail.filter((element) =>
+            element.type === "text" &&
+            element.text &&
+            element.customData?.isAnnotation
+          );
+
+          if (textElements.length > 0) {
+            const promptText = textElements.map((el) => el.text).join(
+              "\n",
+            );
+            await this.suggestFeatures();
+          }
+        },
+        triggerFileUpload() {
+          document.getElementById("icon-upload").click();
+        },
+        handleFileUpload(event) {
+          const file = event.target.files?.[0];
+          if (file) {
+            // Check if the file is an image
+            if (!file.type.startsWith("image/")) {
+              console.error("Please upload an image file");
+              return;
+            }
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              // Create an image element to get dimensions
+              const img = new Image();
+              img.onload = () => {
+                // Create a canvas to resize and standardize the image
+                const canvas = document.createElement("canvas");
+                canvas.width = 512;
+                canvas.height = 512;
+                const ctx = canvas.getContext("2d");
+
+                // Draw the image maintaining aspect ratio
+                const scale = Math.min(
+                  512 / img.width,
+                  512 / img.height,
+                );
+                const x = (512 - img.width * scale) / 2;
+                const y = (512 - img.height * scale) / 2;
+
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, 512, 512);
+                ctx.drawImage(
+                  img,
+                  x,
+                  y,
+                  img.width * scale,
+                  img.height * scale,
+                );
+
+                // Convert to base64 and store
+                this.generatedIcon = canvas.toDataURL("image/png");
+              };
+              img.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+          }
+        },
+        async generateRandomIdea() {
+          SDK.posthogEvent('app:create_app', { action: 'generate_random_idea' });
+          this.isGeneratingIdea = true;
+
+          try {
+            const categories = [
+              {
+                name: "Image Processing",
+                examples: [
+                  "photo editing",
+                  "style transfer",
+                  "image generation",
+                ],
+              },
+              {
+                name: "Text Generation",
+                examples: [
+                  "content writing",
+                  "translation",
+                  "summarization",
+                ],
+              },
+              {
+                name: "Voice & Audio",
+                examples: [
+                  "voice conversion",
+                  "music generation",
+                  "audio effects",
+                ],
+              },
+              {
+                name: "Data Analysis",
+                examples: [
+                  "data visualization",
+                  "trend prediction",
+                  "pattern recognition",
+                ],
+              },
+              {
+                name: "Automation",
+                examples: [
+                  "task automation",
+                  "workflow optimization",
+                  "process scheduling",
+                ],
+              },
+              {
+                name: "Education",
+                examples: [
+                  "personalized learning",
+                  "interactive tutorials",
+                  "skill assessment",
+                ],
+              },
+              {
+                name: "Healthcare",
+                examples: [
+                  "health monitoring",
+                  "diagnosis assistance",
+                  "wellness tracking",
+                ],
+              },
+              {
+                name: "Entertainment",
+                examples: [
+                  "game generation",
+                  "interactive storytelling",
+                  "media creation",
+                ],
+              },
+            ];
+
+            const randomCategory =
+              categories[
+              Math.floor(Math.random() * categories.length)
+              ];
+            const randomExample =
+              randomCategory
+                .examples[
+              Math.floor(
+                Math.random() * randomCategory.examples.length,
+              )
+              ];
+
+            const response = await SDK.ai.generateObject({
+              model: "anthropic:claude-3-5-haiku-20241022",
+              schema: {
+                type: "object",
+                properties: {
+                  idea: {
+                    type: "string",
+                    description:
+                      "A short and simple AI app idea (max 80 chars)",
+                  },
+                  category: {
+                    type: "string",
+                    enum: categories.map((c) => c.name),
+                    description:
+                      "The main category this app idea belongs to",
+                  },
+                  targetAudience: {
+                    type: "string",
+                    description:
+                      "The primary target audience for this app (max 30 chars)",
+                  },
+                },
+                required: ["idea", "category", "targetAudience"],
+              },
+              messages: [{
+                role: "user",
+                content:
+                  `Generate a simple and concise AI app idea for ${randomCategory.name}, focusing on ${randomExample}.
+                Keep it short and direct, similar to: "AI app that turns photos into pixel art".
+                Do not reuse this example. Generate a new, different idea.`,
+              }],
+            });
+
+            this.appIdea = response.object.idea;
+            this.suggestFeatures();
+          } catch (error) {
+            console.error("Error generating random idea:", error);
+          } finally {
+            this.isGeneratingIdea = false;
+          }
+        },
+        toggleCategory(category) {
+          SDK.posthogEvent('app:create_app', { action: 'toggle_category' });
+          this.openCategory = this.openCategory === category
+            ? null
+            : category;
+        },
+        getFeaturesByCategory(category) {
+          return this.features.filter((feature) =>
+            feature.tags.includes(category)
+          );
+        },
+        getCategoryIcon(category) {
+          const iconObj = this.categoryIcons.find(icon => icon.label === category);
+          if (iconObj) {
+            return iconObj.icon;
+            return null;
+          }
+        },
+        async copyPrompt() {
+          this.isCopying = true;
+          this.isCopied = false;
+
+          const featuresText = this.selectedFeatures
+            .map((feature) =>
+              `\nFeature: ${this.getFeatureName(feature.filepath)}
+            Content: ${feature.content}
+            Models: ${feature.models.map((m) =>
+                `${m.model}${m.instructions ? ` (${m.instructions})` : ""
+                }`
+              ).join(", ")
+              }`
+            )
+            .join("\n");
+
+          const fullPrompt =
+            `App Idea: ${this.appIdea}\n\nSelected Features:${featuresText}`;
+
+          try {
+            await navigator.clipboard.writeText(fullPrompt);
+            this.isCopied = true;
+            setTimeout(() => {
+              this.isCopied = false;
+            }, 2000);
+          } catch (err) {
+            console.error("Failed to copy text: ", err);
+          } finally {
+            this.isCopying = false;
+          }
+        },
+        showErrorMessage(message) {
+          this.errorMessage = message;
+          this.showError = true;
+          setTimeout(() => {
+            this.showError = false;
+            this.errorMessage = "";
+          }, 5000);
+        },
+        getFinalPrompt() {
+          const basePrompt = this.getPromptDetails("857a8346-184f-4db9-9d80-099be96218a1");
+          const basePromptText = basePrompt ? this.getAnnotationTextFromPrompt(basePrompt) : "";
+
+          const featuresText = this.selectedFeatures
+            .map((feature) => {
+              const libraryPrompt = this.findLibraryPromptForFeature(feature.id);
+              const implementationDetails = libraryPrompt
+                ? this.getAnnotationTextFromPrompt(libraryPrompt)
+                : "Use standard implementation";
+
+              return `\nFeature: ${this.getFeatureName(feature.filepath)}
+Content: ${feature.content}
+Models: ${feature.models.map((m) => `${m.model}${m.instructions ? ` (${m.instructions})` : ""}`).join(", ")}
+Implementation Details: ${implementationDetails}`;
+            })
+            .join("\n\n");
+
+          const fullPrompt = `Title: ${this.appTitle}
+Description: ${this.appDescription}
+
+App Idea: ${this.appIdea}
+
+Base Implementation Details:
+${basePromptText}
+
+Selected Features:${featuresText}`;
+
+          return fullPrompt;
+        },
+        startTutorial() {
+          // Reset form state
+          this.appIdea = '';
+          this.appTitle = '';
+          this.appDescription = '';
+          this.selectedFeatures = [];
+          this.generatedIcon = null;
+          this.currentStep = 'idea';
+          this.hasSeenTutorial = false;
+
+          const intro = introJs();
+          
+          intro.setOptions({
+            steps: [
+              {
+                title: 'Welcome to Create AI App!',
+                intro: "Let's walk through how to create your own AI-powered application. We'll guide you through each step of the process."
+              },
+              {
+                element: '[data-step="2"]',
+                title: 'Enter Your Idea',
+                intro: "Type your app idea here. When you have at least 20 characters, you can click the 'Suggest Features' button to get AI-powered feature recommendations.",
+                position: 'bottom'
+              },
+              {
+                element: '[data-step="3"]',
+                title: 'Selected Features',
+                disableInteraction: false,
+                intro: "After clicking 'Suggest Features', AI capabilities will appear here based on your app idea. You can also manually add or remove features to customize your app capabilities.",
+                position: 'top',
+                tooltipClass: 'custom-tooltip-position'
+              },
+              {
+                element: '[data-step="4"]',
+                title: 'Feature Selection',
+                intro: 'Browse through different categories of AI features. Each feature adds specific capabilities to your app. Click on features to add or remove them.',
+                position: 'top',
+                tooltipClass: 'custom-tooltip-position'
+              },
+              {
+                element: '[data-step="continue-button"]',
+                title: 'Continue to Next Step',
+                intro: 'Click "Continue" to proceed with creating your app with the selected features.',
+                position: 'bottom',
+                disableInteraction: false
+              },
+              {
+                element: '[data-step="5"]',
+                title: 'App Icon',
+                intro: 'Customize your app icon. Click "Shuffle" to generate a new one or "Upload" to use your own image.',
+                position: 'bottom',
+                disableInteraction: false,
+                tooltipClass: 'icon-step-tooltip'
+              },
+              {
+                element: '[data-step="6"]',
+                title: 'App Title',
+                intro: 'Give your app a clear and descriptive title that reflects its purpose.',
+                position: 'top'
+              },
+              {
+                element: '[data-step="7"]',
+                title: 'App Description',
+                intro: 'Write a compelling description that explains what your app does and its main features.',
+                position: 'top'
+              },
+              {
+                element: '[data-step="8"]',
+                title: "🎉 Time to Create Your App!",
+                intro: "Amazing! You've completed all the steps! 🎊 Now just click 'Create App' to generate your AI-powered application and watch the magic happen! ✨",
+                position: 'left',
+                tooltipClass: 'create-app-tooltip'
+              }
+            ],
+            showProgress: true,
+            showBullets: false,
+            disableInteraction: false,
+            hideNext: false,
+            exitOnOverlayClick: false,
+            exitOnEsc: false,
+            tooltipClass: 'customTooltip',
+            showButtons: true,
+            skipLabel: 'Skip Tutorial',
+            doneLabel: 'Done',
+            nextLabel: 'Next',
+            prevLabel: 'Back'
+          });
+
+          // Add custom CSS for tooltip positioning
+          const style = document.createElement('style');
+          style.textContent = `
+            .introjs-tooltip {
+              max-width: 320px !important;
+              width: 320px !important;
+            }
+            .custom-tooltip-position {
+              margin-top: -15px !important;
+            }
+            .create-app-tooltip {
+            z-index: 999999 !important;
+              margin-right: 15px !important;
+            }
+            .introjs-helperLayer {
+              z-index: 999998 !important;
+            }
+            .introjs-tooltipReferenceLayer {
+              z-index: 999999 !important;
+            }
+            .introjs-tooltip {
+              z-index: 1000000 !important;
+            }
+            .introjs-overlay {
+              z-index: 999997 !important;
+            }
+            [data-step="3"], [data-step="4"] {
+              z-index: 999996 !important;
+            }
+            [data-step="8"] {
+              position: relative;
+            }
+            .introjs-helperLayer[data-step-number="9"] {
+              background-color: rgba(37, 99, 235, 0.1) !important;
+              border: 2px solid #2563EB !important;
+              box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7), 
+                         0 0 8px 2px rgba(37, 99, 235, 0.3) !important;
+              border-radius: 9999px !important;
+            }
+              .introjs-arrow {
+              display: none !important;
+            }
+            .introjs-helperLayer[data-step-number="9"] + .introjs-tooltipReferenceLayer .introjs-tooltip {
+              background: #2563EB !important;
+              color: white !important;
+            }
+            .introjs-helperLayer[data-step-number="9"] + .introjs-tooltipReferenceLayer .introjs-tooltiptext {
+              color: white !important;
+            }
+            .introjs-helperLayer[data-step-number="9"] + .introjs-tooltipReferenceLayer .introjs-arrow {
+              border-left-color: #2563EB !important;
+            }
+          `;
+          document.head.appendChild(style);
+
+          // Function to handle back button visibility
+          const updateBackButtonVisibility = () => {
+            const backButton = document.querySelector('.introjs-prevbutton');
+            if (backButton) {
+              // Hide back button only on first step and App Icon step (step 5)
+              backButton.style.display = (intro._currentStep === 0 || intro._currentStep === 5) ? 'none' : '';
+            }
+          };
+
+          // Add event listeners for the tutorial
+          intro.onbeforechange((targetElement) => {
+            // Track step change
+            const stepData = { 
+              step_number: intro._currentStep + 1,
+              step_name: intro._options.steps[intro._currentStep].title
+            };
+            SDK.posthogEvent('app:create_app:tutorial:step_viewed', stepData);
+            
+            // Get the next button element
+            const nextButton = document.querySelector('.introjs-nextbutton');
+            if (!nextButton) return;
+
+            // Hide back button on first step
+            updateBackButtonVisibility();
+
+            // Reset button state by default
+            nextButton.style.opacity = '1';
+            nextButton.style.pointerEvents = 'auto';
+            
+            // Special handling for the Create App button step
+            if (intro._currentStep === 8) {
+              const createAppButton = document.querySelector('[data-step="8"]');
+              if (createAppButton) {
+                createAppButton.style.animation = 'pulse 2s infinite';
+                createAppButton.style.zIndex = '999999 !important';
+                // Add pulse animation
+                const pulseStyle = document.createElement('style');
+                pulseStyle.textContent = `
+                  [data-step="8"] {
+                    z-index: 999999 !important;
+                  }
+                  @keyframes pulse {
+                    0% {
+                      box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
+                    }
+                    70% {
+                      box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
+                    }
+                    100% {
+                      box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+                    }
+                  }
+                `;
+                document.head.appendChild(pulseStyle);
+
+                // Add click handler for Create App button
+                const originalClick = createAppButton.onclick;
+                createAppButton.onclick = async (e) => {
+                  if (originalClick) {
+                    await originalClick.call(createAppButton, e);
+                  }
+                  // Close the tutorial
+                  intro.exit();
+                };
+              }
+            }
+            
+            // Always remove animation if not on step 8
+            if (intro._currentStep !== 8) {
+              const createAppButton = document.querySelector('[data-step="8"]');
+              if (createAppButton) {
+                createAppButton.style.animation = '';
+                createAppButton.style.boxShadow = '';
+              }
+            }
+            
+            // If we're moving to the icon step (step 5), ensure we're on the details step first
+            if (intro._currentStep === 5) {
+              if (this.currentStep !== 'details') {
+                this.currentStep = 'details';
+              }
+              // Force a refresh after a short delay to ensure Vue has updated the DOM
+              setTimeout(() => {
+                const iconStep = document.querySelector('[data-step="5"]');
+                if (iconStep) {
+                  intro.refresh();
+                }
+              }, 50);
+            }
+            
+            // Handle the Continue step
+            if (intro._currentStep === 4) {
+              nextButton.style.display = 'none';
+              
+              const continueButton = document.querySelector('[data-step="continue-button"]');
+              if (continueButton) {
+                const originalClick = continueButton.onclick;
+                continueButton.onclick = async (e) => {
+                  if (originalClick) {
+                    await originalClick.call(continueButton, e);
+                  }
+                  
+                  // Wait for the generation process to complete
+                  const checkGeneration = () => {
+                    if (!this.isGeneratingDetails && this.currentStep === 'details') {
+                      // Add a small delay to ensure Vue has rendered the new elements
+                      setTimeout(() => {
+                        const iconStep = document.querySelector('[data-step="5"]');
+                        if (iconStep) {
+                          intro.refresh();
+                          intro.nextStep();
+                        } else {
+                          setTimeout(checkGeneration, 50);
+                        }
+                      }, 50);
+                    } else {
+                      setTimeout(checkGeneration, 50);
+                    }
+                  };
+                  checkGeneration();
+                };
+              }
+            } else if (intro._currentStep === 5) {
+              // Add a small delay to ensure elements are rendered
+              setTimeout(() => {
+                const iconStep = document.querySelector('[data-step="5"]');
+                if (iconStep) {
+                  intro.refresh();
+                  
+                  // Show Next button during icon step
+                  nextButton.style.display = '';
+                  
+                  // Add click handlers for both buttons
+                  const shuffleButton = document.querySelector('[data-step="5"] button[data-tooltip="Generate new icon"]');
+                  const uploadButton = document.querySelector('[data-step="5"] button[data-tooltip="Upload custom icon"]');
+                  
+                  if (shuffleButton && uploadButton) {
+                    const checkIcon = () => {
+                      if (this.generatedIcon && !this.isGeneratingIcon) {
+                        intro.refresh();
+                        
+                        // Remove the temporary click handlers
+                        shuffleButton.onclick = shuffleButton._originalClick;
+                        uploadButton.onclick = uploadButton._originalClick;
+                      }
+                    };
+                    
+                    // Store original click handlers
+                    shuffleButton._originalClick = shuffleButton.onclick;
+                    uploadButton._originalClick = uploadButton.onclick;
+                    
+                    // Add new click handlers that check for icon generation
+                    shuffleButton.onclick = async (e) => {
+                      if (shuffleButton._originalClick) {
+                        await shuffleButton._originalClick.call(shuffleButton, e);
+                      }
+                      setTimeout(checkIcon, 100);
+                    };
+                    
+                    uploadButton.onclick = async (e) => {
+                      if (uploadButton._originalClick) {
+                        await uploadButton._originalClick.call(uploadButton, e);
+                      }
+                      setTimeout(checkIcon, 100);
+                    };
+                  }
+                }
+              }, 100);
+            } else {
+              nextButton.style.display = '';
+            }
+            
+            // Only apply the input validation on step 2
+            if (intro._currentStep === 1) {
+              const textarea = document.querySelector('textarea');
+              if (textarea) {
+                const checkInput = () => {
+                  const hasText = textarea.value.trim();
+                  
+                  if (!hasText) {
+                    nextButton.style.opacity = '0.5';
+                    nextButton.style.pointerEvents = 'none';
+                  } else {
+                    nextButton.style.opacity = '1';
+                    nextButton.style.pointerEvents = 'auto';
+                  }
+                };
+
+                const updateLoadingState = () => {
+                  if (this.isGeneratingSuggestions) {
+                    nextButton.innerHTML = '<div class="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>';
+                    nextButton.style.opacity = '0.5';
+                    nextButton.style.pointerEvents = 'none';
+                  } else {
+                    nextButton.innerHTML = 'Next';
+                    checkInput();
+                  }
+                };
+                
+                // Initial check
+                checkInput();
+                updateLoadingState();
+                
+                // Remove any existing listeners first
+                textarea.removeEventListener('input', checkInput);
+                // Add the new listener
+                textarea.addEventListener('input', checkInput);
+                
+                // Watch for changes in loading state
+                this.$watch('isGeneratingSuggestions', updateLoadingState);
+              }
+            }
+          });
+
+          // Make sure back button is hidden when tutorial starts
+          intro.onafterchange(() => {
+            updateBackButtonVisibility();
+
+            // Remove only the close button
+            const closeButton = document.querySelector('.introjs-tooltip-header a');
+            if (closeButton) {
+              closeButton.style.display = 'none';
+            }
+
+            const skipButton = document.querySelector('.introjs-skipbutton');
+            if (skipButton) {
+              skipButton.style.position = 'absolute';
+              skipButton.style.right = '10px';
+              skipButton.style.top = '10px';
+              skipButton.style.color = '#6B7280';
+              skipButton.style.fontSize = '14px';
+              skipButton.style.fontWeight = '500';
+              skipButton.style.cursor = 'pointer';
+              skipButton.style.background = 'none';
+              skipButton.style.border = 'none';
+              skipButton.style.padding = '0';
+            }
+          });
+
+          intro.onexit(() => {
+            // Save tutorial state to fs instead of localStorage
+            this.saveTutorialState();
+            this.hasSeenTutorial = true;
+            
+            // Track tutorial exit
+            const exitData = { 
+              last_step: intro._currentStep + 1,
+              completed: intro._currentStep === intro._options.steps.length - 1
+            };
+            SDK.posthogEvent('app:create_app:tutorial:exit', exitData);
+            
+            // Clean up any event listeners
+            const textarea = document.querySelector('textarea');
+            if (textarea) {
+              textarea.removeEventListener('input', () => {});
+            }
+          });
+
+          intro.start();
+          
+          // Track tutorial start
+          const startData = { 
+            total_steps: intro._options.steps.length
+          };
+          SDK.posthogEvent('app:create_app:tutorial:start', startData);
+
+          // Store the intro instance for later use
+          this.currentIntro = intro;
+        },
+        closeTutorial() {
+          if (!this.currentIntro) return;
+          
+          // Track tutorial skip using the current instance
+          const skipData = { 
+            from_step: this.currentIntro._currentStep + 1
+          };
+          SDK.posthogEvent('app:create_app:tutorial:skip', skipData);
+          
+          this.currentIntro.exit();
+          
+          // Save tutorial state to fs instead of localStorage
+          this.saveTutorialState();
+          this.hasSeenTutorial = true;
+        },
+        async saveTutorialState() {
+          try {
+            // Read existing settings or create new ones
+            let settings = {};
+            try {
+              const settingsExists = await SDK.fs.exists('/~/create_app.json');
+              if (settingsExists) {
+                settings = JSON.parse(await SDK.fs.read('/~/create_app.json'));
+              }
+            } catch (error) {
+              console.error('Error reading settings:', error);
+            }
+
+            // Update settings with tutorial state
+            settings.hasSeenTutorial = true;
+
+            // Save updated settings
+            await SDK.fs.write('/~/create_app.json', JSON.stringify(settings, null, 2));
+          } catch (error) {
+            console.error('Error saving tutorial state:', error);
+          }
+        },
+      },
+    }).mount("#app");
+  </script>
+</body>
+</html>
