@@ -13,6 +13,11 @@
             line-height: 1.6;
             background-color: #f5f5f5;
         }
+        h1 {
+            color: #4285F4;
+            text-align: center;
+            margin-bottom: 20px;
+        }
         #chat-container {
             border: 1px solid #ddd;
             border-radius: 8px;
@@ -23,10 +28,13 @@
             background-color: white;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+        #input-area {
+            display: flex;
+            gap: 10px;
+        }
         #user-input {
             width: 100%;
             padding: 12px;
-            margin-bottom: 10px;
             box-sizing: border-box;
             border: 1px solid #ddd;
             border-radius: 4px;
@@ -89,32 +97,20 @@
             display: inline-block;
             margin-right: 3px;
             opacity: 0.4;
-        }
-        .typing-indicator span:nth-child(1) {
             animation: typing 1s infinite;
         }
-        .typing-indicator span:nth-child(2) {
-            animation: typing 1s infinite 0.2s;
-        }
-        .typing-indicator span:nth-child(3) {
-            animation: typing 1s infinite 0.4s;
-        }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes typing {
-            0% { opacity: 0.4; }
+            0%, 100% { opacity: 0.4; }
             50% { opacity: 1; }
-            100% { opacity: 0.4; }
-        }
-        h1 {
-            color: #4285F4;
-            text-align: center;
-            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
     <h1>Gemini AI Chat</h1>
     <div id="chat-container"></div>
-    <div style="display: flex; gap: 10px;">
+    <div id="input-area">
         <input type="text" id="user-input" placeholder="Type your message here..." autocomplete="off">
         <button id="send-button">Send</button>
     </div>
@@ -125,35 +121,41 @@
             const userInput = document.getElementById('user-input');
             const sendButton = document.getElementById('send-button');
             
-            // Gemini API configuration
-            const API_KEY = "AIzaSyCrB2nD5xvbExASx9Z_l21kyX0M2ICuxHk";
+            // --- SECURITY WARNING ---
+            // Avoid hardcoding API keys in client-side code.
+            // This key is for demonstration only and should be secured.
+            const API_KEY = "YOUR_API_KEY"; // <-- IMPORTANT: Replace with your actual key
             const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
             
             // Initial greeting
             addMessage("Hello! I'm Gemini AI. How can I help you today?", false);
             
-            function addMessage(message, isUser) {
+            function addMessage(text, isUser) {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = isUser ? 'user-message' : 'bot-message';
                 
-                // Format message with code blocks
-                if (message.includes('```')) {
-                    const parts = message.split('```');
+                // Sanitize text to prevent HTML injection
+                const sanitizedText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                
+                if (sanitizedText.includes('```')) {
+                    const parts = sanitizedText.split('```');
                     parts.forEach((part, index) => {
-                        if (index % 2 === 1) {
-                            // Code block
-                            const codeBlock = document.createElement('div');
+                        if (index % 2 === 1) { // Code block
+                            const codeBlock = document.createElement('pre');
+                            const codeElement = document.createElement('code');
                             codeBlock.className = 'code-block';
-                            codeBlock.textContent = part;
+                            codeElement.textContent = part.trim();
+                            codeBlock.appendChild(codeElement);
                             messageDiv.appendChild(codeBlock);
-                        } else if (part.trim() !== '') {
-                            // Regular text
-                            const textNode = document.createTextNode(part);
+                        } else if (part.trim() !== '') { // Regular text
+                            const textNode = document.createElement('p');
+                            textNode.style.margin = '0';
+                            textNode.textContent = part;
                             messageDiv.appendChild(textNode);
                         }
                     });
                 } else {
-                    messageDiv.textContent = message;
+                    messageDiv.textContent = sanitizedText;
                 }
                 
                 chatContainer.appendChild(messageDiv);
@@ -164,13 +166,10 @@
                 const typingDiv = document.createElement('div');
                 typingDiv.className = 'bot-message';
                 typingDiv.id = 'typing-indicator';
-                const typingText = document.createElement('span');
-                typingText.textContent = 'Gemini is typing';
-                typingDiv.appendChild(typingText);
-                const dots = document.createElement('div');
-                dots.className = 'typing-indicator';
-                dots.innerHTML = '<span></span><span></span><span></span>';
-                typingDiv.appendChild(dots);
+                typingDiv.innerHTML = `<span>Gemini is typing</span>
+                                       <div class="typing-indicator">
+                                           <span></span><span></span><span></span>
+                                       </div>`;
                 chatContainer.appendChild(typingDiv);
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             }
@@ -195,32 +194,35 @@
                 try {
                     const response = await fetch(API_URL, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            contents: [{
-                                parts: [{
-                                    text: message
-                                }]
-                            }]
+                            contents: [{ parts: [{ text: message }] }]
                         })
                     });
                     
                     if (!response.ok) {
-                        throw new Error(`API request failed with status ${response.status}`);
+                        const errorData = await response.json();
+                        throw new Error(errorData.error.message || `API request failed with status ${response.status}`);
                     }
                     
                     const data = await response.json();
-                    const aiResponse = data.candidates[0].content.parts[0].text;
                     
-                    hideTypingIndicator();
-                    addMessage(aiResponse, false);
+                    // **FIXED**: Safely access the API response
+                    const botResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    if (botResponse) {
+                        addMessage(botResponse, false);
+                    } else {
+                        // Handle cases where the API returns no content (e.g., due to safety filters)
+                        const reason = data.promptFeedback?.blockReason || 'No content received';
+                        addMessage(`Sorry, I couldn't process that. Reason: ${reason}.`, false);
+                    }
+
                 } catch (error) {
-                    hideTypingIndicator();
                     addMessage(`Error: ${error.message}`, false);
                     console.error('API Error:', error);
                 } finally {
+                    hideTypingIndicator();
                     sendButton.disabled = false;
                     userInput.focus();
                 }
@@ -228,13 +230,12 @@
             
             // Event listeners
             sendButton.addEventListener('click', sendMessage);
-            userInput.addEventListener('keypress', function(e) {
+            userInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     sendMessage();
                 }
             });
             
-            // Focus input on page load
             userInput.focus();
         });
     </script>
